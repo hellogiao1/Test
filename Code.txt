@@ -1,0 +1,126 @@
+#include<iostream>  // cin、cout
+#include<fstream>   // 包含文件读取类与方法
+#include<sstream>   // 字符串流操作
+#include<string>    // 字符串类
+#include<io.h>      // 遍历操作
+using namespace std;// 标准库命名空间
+
+string file = "D:/log/";                    // 放置log文件的目录
+
+const char* coutFile = "D:/log/output.csv"; // 输出提取数据到csv文件
+
+ofstream coutReport(coutFile);              // 构建输出结果文件类对象
+
+void Replace_all_Ditinct(string& str, const string& old_value, const string& new_value) {
+    for (string::size_type pos(0); pos != string::npos; pos += new_value.length()) {
+        if ((pos = str.find(old_value, pos)) != string::npos) {
+            str.replace(pos, old_value.length(), new_value);
+        }
+        else break;
+    }
+}
+
+void test(string& str, const string& strFind, const string& trasfer) {
+    int pos = str.find(strFind + "(", 0);
+    str.replace(pos + 1, trasfer.length(), trasfer);
+}
+
+void GetInfo(const string& filePath)
+{
+    ifstream logFile(filePath);
+    string str;
+    // 隔行读入数据
+    while (getline(logFile, str))
+    {
+        stringstream strRead(str);
+        string oneWord;
+        while (strRead >> oneWord) // 一个个word加载进去
+        {
+            if (oneWord.compare("Speed") == 0)
+            {
+                string result;
+                strRead >> result;      // Speed后面的数字输出到result中
+
+                cout << result << endl; // 测试
+                coutReport << result << endl; // 写入文件，并且空行
+            }
+
+        }
+        str.clear();  // 重复加载，所以每次需要清空
+    }
+
+    // 关闭文件
+    logFile.close();
+}
+
+int main()
+{
+
+    struct _finddata_t fileinfo;
+
+    string strFile = file + "*.log";
+
+    /***遍历目录系统函数要求先尝试寻找一个文件，看是否存在***/
+    intptr_t  handle;
+    if ((handle = _findfirst(strFile.c_str(), &fileinfo)) == -1L)
+    {
+        return 0;  // 如果查询log文件失败，直接返回
+    }
+    else
+    {
+        strFile = file + fileinfo.name;
+        GetInfo(strFile);     // 文件处理
+        /***一直遍历，直到所有.log文件得到加载与处理***/
+        while (!(_findnext(handle, &fileinfo)))
+        {
+            strFile = file + fileinfo.name;
+            GetInfo(strFile); // 文件处理
+            cout << "test??";
+        }
+        coutReport.close(); // 释放文件加载
+
+        _findclose(handle); // 释放遍历目录的句柄
+    }
+
+    return 0;
+}
+
+//void findfile(string path, string mode)
+//{
+//	_finddata_t file;
+//	intptr_t HANDLE;
+//	string Onepath = path + mode;
+//	HANDLE = _findfirst(Onepath.c_str(), &file);
+//	if (HANDLE == -1L)
+//	{
+//		cout << "can not match the folder path" << endl;
+//		system("pause");
+//	}
+//	do {
+//		//判断是否有子目录  
+//		if (file.attrib & _A_SUBDIR)
+//		{
+//			//判断是否为"."当前目录，".."上一层目录
+//			if ((strcmp(file.name, ".") != 0) && (strcmp(file.name, "..") != 0))
+//			{
+//				//在判断有无子目录的if分支中，由于系统在进入一个子目录时，匹配到的头两个文件(夹)是"."(当前目录)，".."(上一层目录)。
+//				//需要忽略掉这两种情况。当需要对遍历到的文件做处理时，在else分支中添加相应的代码就好
+//				string newPath = path + "\\" + file.name;
+//				findfile(newPath, mode);
+//			}
+//		}
+//		else
+//		{
+//			cout << file.name << " " << endl;
+//		}
+//	} while (_findnext(HANDLE, &file) == 0);
+//	_findclose(HANDLE);
+//}
+//int main(int argc, char** argv)
+//{
+//	string mode = "\\*.*";
+//	string path = "F:\\论文";
+//	findfile(path, mode);
+//	system("pause");
+//	return 0;
+//}
